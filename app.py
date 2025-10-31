@@ -15,11 +15,15 @@ def chat():
     try:
         data = request.get_json()
         message = data.get('message', '')
+        selecao_prato = data.get('selecao_prato', None)  # Para quando usuário seleciona prato
+        # Prioriza API key da variável de ambiente (Render) ou da requisição
+        api_key = os.getenv('GEMINI_API_KEY') or data.get('api_key', None)
         
         if not message:
             return jsonify({'error': 'Mensagem não fornecida'}), 400
         
-        result = chatbot.get_response(message)
+        # Chama o chatbot com os parâmetros apropriados
+        result = chatbot.get_response(message, selecao_prato=selecao_prato, api_key=api_key)
         
         return jsonify({
             'response': result['response'],
@@ -28,7 +32,8 @@ def chat():
             'all_intents': result.get('all_intents', []),
             'all_probabilities': result.get('all_probabilities', []),
             'sentences_processed': result.get('sentences_processed', 1),
-            'multiple_sentences': result.get('sentences_processed', 1) > 1
+            'multiple_sentences': result.get('sentences_processed', 1) > 1,
+            'needs_prato_selection': result.get('needs_prato_selection', False)
         })
     
     except Exception as e:

@@ -1056,6 +1056,10 @@
             cbMessages.scrollTop = cbMessages.scrollHeight;
         }
 
+        // Variável para rastrear se estamos esperando seleção de prato
+        let esperandoSelecaoPrato = false;
+        let apiKeyGemini = null;
+
         async function sendCbMessage() {
             console.log('sendCbMessage called');
             const msg = cbInput.value.trim();
@@ -1063,16 +1067,32 @@
             if (!msg) return;
             
             addCbMessage(msg, true);
+            const msgValue = msg;
             cbInput.value = '';
             cbSend.disabled = true;
             cbSend.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             
             try {
                 console.log('Sending request to /chat');
+                
+                // Prepara o payload da requisição
+                const payload = { message: msgValue };
+                
+                // Se estamos esperando seleção de prato, enviamos como seleção
+                // A API key será obtida automaticamente da variável de ambiente do servidor (Render)
+                if (esperandoSelecaoPrato) {
+                    payload.selecao_prato = msgValue;
+                    // API key será lida do servidor (variável de ambiente GEMINI_API_KEY)
+                    // Só envia se o usuário forneceu manualmente
+                    if (apiKeyGemini) {
+                        payload.api_key = apiKeyGemini;
+                    }
+                }
+                
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: msg })
+                    body: JSON.stringify(payload)
                 });
                 console.log('Response received:', response);
                 const data = await response.json();
@@ -1081,8 +1101,18 @@
                 setTimeout(() => {
                     if (response.ok) {
                         addCbMessage(data.response, false, data.intent, data.probability);
+                        
+                        // Verifica se precisa de seleção de prato
+                        if (data.needs_prato_selection) {
+                            esperandoSelecaoPrato = true;
+                            // API key será obtida automaticamente do servidor se estiver configurada
+                            // Não precisa solicitar do usuário se já está no Render
+                        } else {
+                            esperandoSelecaoPrato = false;
+                        }
                     } else {
                         addCbMessage('Gomen nasai! Houve um erro no sistema. Por favor, tente novamente.', false);
+                        esperandoSelecaoPrato = false;
                     }
                     cbSend.disabled = false;
                     cbSend.innerHTML = '<i class="fas fa-paper-plane"></i>';
@@ -1092,6 +1122,7 @@
                 console.error('Error in sendCbMessage:', error);
                 setTimeout(() => {
                     addCbMessage('Erro de conexão. Verifique sua internet e tente novamente.', false);
+                    esperandoSelecaoPrato = false;
                     cbSend.disabled = false;
                     cbSend.innerHTML = '<i class="fas fa-paper-plane"></i>';
                     cbInput.focus();

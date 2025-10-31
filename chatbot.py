@@ -2,6 +2,8 @@ import json
 import random
 import re
 import nltk
+import os
+import requests
 from collections import Counter
 import math
 
@@ -25,27 +27,42 @@ class RestauranteJaponesChatbotSimples:
         self.stop_words = set(stopwords.words('portuguese'))
         # Adiciona algumas palavras em inglês também
         self.stop_words.update(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'])
-        def consulta_gemini(self, nome_prato, api_key):
-            """Consulta a API Gemini para obter ingredientes/receita do prato."""
-            import requests
-            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
-            headers = {
-                "Content-Type": "application/json",
+        # Lista de pratos disponíveis para consulta de ingredientes
+        self.pratos_disponiveis = [
+            "lasanha", "feijoada", "moqueca", "spaghetti alla carbonara",
+            "yakissoba", "sushi de salmão", "temaki", "ramen", "hot roll",
+            "combo família", "sushi de atum", "sashimi", "udon", "teriyaki",
+            "philadelphia roll", "califórnia roll", "gyoza", "tempura"
+        ]
+    
+    def consulta_gemini(self, nome_prato, api_key):
+        """Consulta a API Gemini para obter ingredientes/receita do prato."""
+        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+        headers = {
+            "Content-Type": "application/json",
+        }
+        prompt = f"Quais são os ingredientes e a receita completa do prato {nome_prato}? Forneça uma receita detalhada com todos os ingredientes e modo de preparo."
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 1024
             }
-            prompt = f"Quais são os ingredientes do prato {nome_prato}? Responda de forma objetiva."
-            payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 512}
-            }
-            params = {"key": api_key}
-            try:
-                resp = requests.post(url, headers=headers, params=params, json=payload, timeout=20)
-                j = resp.json()
-                # Ajuste conforme o formato retornado pela Gemini
-                content = j.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text")
-                return content or str(j)
-            except Exception as e:
-                return f"Erro na resposta da API Gemini: {str(e)}"
+        }
+        params = {"key": api_key}
+        try:
+            resp = requests.post(url, headers=headers, params=params, json=payload, timeout=30)
+            resp.raise_for_status()
+            j = resp.json()
+            # Ajuste conforme o formato retornado pela Gemini
+            content = j.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text")
+            if not content:
+                return f"Receita de {nome_prato}:\n\nA API não retornou conteúdo válido. Resposta completa: {json.dumps(j, ensure_ascii=False, indent=2)}"
+            return content
+        except requests.exceptions.RequestException as e:
+            return f"Erro ao consultar a API Gemini: {str(e)}"
+        except Exception as e:
+            return f"Erro inesperado: {str(e)}"
 
     def extract_prato(self, text):
         """Extrai o prato japonês da frase, considerando variações e erros comuns."""
@@ -203,7 +220,8 @@ class RestauranteJaponesChatbotSimples:
             'tempo_entrega': ['tempo', 'entrega', 'demora', 'prazo', 'quando'],
             'agradecimento': ['obrigado', 'obrigada', 'valeu', 'brigado', 'thanks'],
             'reclamacao': ['problema', 'reclamação', 'ruim', 'fria', 'errada', 'atrasada'],
-            'despedida': ['tchau', 'bye', 'até logo', 'falou', 'até mais', 'adeus']
+            'despedida': ['tchau', 'bye', 'até logo', 'falou', 'até mais', 'adeus'],
+            'ingredientes': ['ingredientes', 'receita', 'o que tem', 'buscar ingredientes', 'preciso dos ingredientes']
         }
         
         best_intent = "desconhecido"
@@ -221,13 +239,86 @@ class RestauranteJaponesChatbotSimples:
         
         return best_intent, best_score
     
-    def get_response(self, message):
-        """Retorna resposta para a mensagem, identificando múltiplas intenções e pedidos de sabor."""
+    def get_lista_pratos(self):
+        """Retorna a lista formatada de pratos disponíveis"""
+        lista_texto = "Pratos disponíveis:\n"
+        for i, prato in enumerate(self.pratos_disponiveis, start=1):
+            lista_texto += f"{i}. {prato.title()}\n"
+        lista_texto += "\nDigite o número do prato que deseja (ou vários números separados por vírgula, ex: 1,3,5):"
+        return lista_texto
+    
+    def processar_selecao_pratos(self, escolha_texto):
+        """Processa a seleção de pratos baseado em números ou texto"""
+        escolha_texto = escolha_texto.strip().lower()
+        
+        # Tenta extrair números da escolha
+        numeros = re.findall(r'\d+', escolha_texto)
+        pratos_selecionados = []
+        
+        if numeros:
+            # Seleção por números
+            for num_str in numeros:
+                try:
+                    idx = int(num_str) - 1
+                    if 0 <= idx < len(self.pratos_disponiveis):
+                        prato = self.pratos_disponiveis[idx]
+                        if prato not in pratos_selecionados:
+                            pratos_selecionados.append(prato)
+                except ValueError:
+                    continue
+        
+        # Se não encontrou números, tenta buscar pelo nome do prato
+        if not pratos_selecionados:
+            escolha_lower = escolha_texto.lower()
+            for prato in self.pratos_disponiveis:
+                if prato.lower() in escolha_lower or escolha_lower in prato.lower():
+                    if prato not in pratos_selecionados:
+                        pratos_selecionados.append(prato)
+        
+        return pratos_selecionados
+
+    def get_response(self, message, selecao_prato=None, api_key=None):
+        """Retorna resposta para a mensagem, identificando múltiplas intenções e pedidos de sabor.
+        
+        Args:
+            message: Mensagem do usuário
+            selecao_prato: Texto com seleção de prato (número ou nome) - usado quando já foi detectada intenção ingredientes
+            api_key: API key do Gemini (opcional, pode vir de variável de ambiente)
+        """
         # Normaliza a mensagem
         message = message.strip()
         
+        # Se temos seleção de prato e API key, processa diretamente a busca de ingredientes
+        if selecao_prato and api_key:
+            pratos_selecionados = self.processar_selecao_pratos(selecao_prato)
+            if not pratos_selecionados:
+                return {
+                    'response': "Seleção inválida. Por favor, escolha um número da lista ou digite o nome do prato.",
+                    'intent': "ingredientes",
+                    'probability': 100.0,
+                    'all_intents': ["ingredientes"],
+                    'all_probabilities': [100.0],
+                    'sentences_processed': 1,
+                    'needs_prato_selection': True
+                }
+            
+            # Busca ingredientes para cada prato selecionado
+            respostas_ingredientes = []
+            for prato in pratos_selecionados:
+                resultado = self.consulta_gemini(prato, api_key)
+                respostas_ingredientes.append(f"🍽️ **{prato.title()}**\n\n{resultado}\n")
+            
+            return {
+                'response': "\n\n" + "="*50 + "\n\n".join(respostas_ingredientes),
+                'intent': "ingredientes",
+                'probability': 100.0,
+                'all_intents': ["ingredientes"],
+                'all_probabilities': [100.0],
+                'sentences_processed': 1,
+                'needs_prato_selection': False
+            }
+        
         # Divide a mensagem em frases se houver múltiplas
-        # Melhora a detecção de separadores de frases
         sentences = re.split(r'[.!?;]+|\s+e\s+|\s+,\s*(?=quero|preciso|gostaria|vou)', message)
         sentences = [s.strip() for s in sentences if s.strip()]
         if not sentences:
@@ -243,6 +334,24 @@ class RestauranteJaponesChatbotSimples:
                 intent, probability = self.predict_intent(sentence)
                 intents_detected.append(intent)
                 probabilities.append(probability)
+
+                # Se detectou intenção de ingredientes, retorna lista de pratos
+                if intent == "ingredientes":
+                    lista_pratos = self.get_lista_pratos()
+                    # Verifica se tem API key na variável de ambiente
+                    api_key_env = os.getenv('GEMINI_API_KEY')
+                    mensagem_extra = ""
+                    if not api_key_env and not api_key:
+                        mensagem_extra = "\n\n⚠️ Nota: Você precisará fornecer uma API Key do Gemini ao selecionar o prato."
+                    return {
+                        'response': lista_pratos + mensagem_extra,
+                        'intent': "ingredientes",
+                        'probability': round(probability * 100, 2),
+                        'all_intents': intents_detected,
+                        'all_probabilities': [round(p * 100, 2) for p in probabilities],
+                        'sentences_processed': len(sentences),
+                        'needs_prato_selection': True
+                    }
 
                 prato = self.extract_prato(sentence)
                 
@@ -289,39 +398,6 @@ class RestauranteJaponesChatbotSimples:
                         break
                 if not response_found:
                     responses.append("Desculpe, não entendi muito bem. Pode me falar mais sobre o que você precisa?")
-            # Verifica se há intenção de ingredientes
-            if "ingredientes" in intents_detected:
-                # Lista de pratos disponíveis
-                pratos_disponiveis = [
-                    "lasanha", "feijoada", "moqueca", "spaghetti alla carbonara", "yakissoba", "sushi", "temaki", "ramen", "hot roll", "combo família"
-                ]
-                print("Pratos disponíveis:")
-                for i, p in enumerate(pratos_disponiveis, start=1):
-                    print(f"{i}. {p}")
-                escolha = input("Escolha o número do prato (ou vários números separados por vírgula): ").strip()
-                indices = [s.strip() for s in escolha.split(",") if s.strip().isdigit()]
-                selecionados = []
-                for idx in indices:
-                    i = int(idx) - 1
-                    if 0 <= i < len(pratos_disponiveis):
-                        selecionados.append(pratos_disponiveis[i])
-                if not selecionados:
-                    print("Seleção inválida. Tente novamente.")
-                    return self.get_response(message)
-                api_key = os.getenv("GEMINI_API_KEY") or input("Insira a API key da Gemini: ").strip()
-                respostas_ingredientes = []
-                for prato in selecionados:
-                    print(f"\nBuscando ingredientes para: {prato}\n")
-                    resultado = self.consulta_gemini(prato, api_key)
-                    respostas_ingredientes.append(f"{prato.title()}:\n{resultado}")
-                return {
-                    'response': "\n\n".join(respostas_ingredientes),
-                    'intent': "ingredientes",
-                    'probability': 100.0,
-                    'all_intents': intents_detected,
-                    'all_probabilities': [100.0],
-                    'sentences_processed': 1
-                }
 
         # Remove respostas muito similares
         final_responses = []
@@ -354,7 +430,8 @@ class RestauranteJaponesChatbotSimples:
             'probability': round(main_probability * 100, 2),
             'all_intents': intents_detected,
             'all_probabilities': [round(p * 100, 2) for p in probabilities],
-            'sentences_processed': len(sentences)
+            'sentences_processed': len(sentences),
+            'needs_prato_selection': False
         }
 
 # Instância global do chatbot
