@@ -3,20 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Will Japanese Restaurant - Tradição e Excelência na Arte Culinária Japonesa desde 1985">
+    <meta name="description" content="Sakura Sushi - Tradição e Excelência na Arte Culinária Japonesa desde 1985">
     <meta name="keywords" content="restaurante japonês, sushi, temaki, comida japonesa, São Paulo">
-    <title>Will Japanese Restaurant - Tradição e Excelência desde 1985</title>
+    <title>Sakura Sushi - Tradição e Excelência desde 1985</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <nav class="navbar" role="navigation" aria-label="Main navigation">
         <div class="nav-container">
-            <a href="#home" class="logo" aria-label="Will Japanese Restaurant - Home">Will</a>
+            <a href="#home" class="logo" aria-label="Sakura Sushi - Home">Sakura</a>
             <ul class="nav-links" role="menubar">
                 <li role="none"><a href="#home" role="menuitem">Início</a></li>
                 <li role="none"><a href="#about" role="menuitem">Nossa História</a></li>
@@ -28,7 +25,7 @@
 
     <section id="home" class="hero" aria-label="Hero section">
         <div class="hero-content">
-            <h1>Will Japanese Restaurant</h1>
+            <h1>Sakura Sushi</h1>
             <p class="subtitle">Tradição e Excelência na Arte Culinária Japonesa desde 1985</p>
             <a href="#menu" class="cta-button" aria-label="Explorar cardápio">Explore Nosso Cardápio</a>
         </div>
@@ -43,15 +40,16 @@
             <div class="about-grid">
                 <div class="about-content">
                     <h3>Tradição Familiar</h3>
-                    <p>Em 1985, o Chef Hiroshi Will chegou ao Brasil com um sonho: compartilhar a autêntica culinária japonesa com o povo brasileiro. Formado na prestigiosa escola culinária de Tóquio, trouxe consigo técnicas milenares e receitas guardadas há gerações.</p>
-                    <p>Hoje, seu filho William Will continua este legado, combinando a tradição familiar com inovações contemporâneas, mantendo sempre o compromisso com ingredientes frescos e técnicas apuradas.</p>
+                    <p>Em 1985, o Chef Hiroshi chegou ao Brasil com um sonho: compartilhar a autêntica culinária japonesa com o povo brasileiro. Formado na prestigiosa escola culinária de Tóquio, trouxe consigo técnicas milenares e receitas guardadas há gerações.</p>
+                    <p>Hoje, continuamos este legado, combinando a tradição familiar com inovações contemporâneas, mantendo sempre o compromisso com ingredientes frescos e técnicas apuradas.</p>
                     <p>Nosso restaurante tornou-se referência em culinária japonesa, reconhecido pela crítica gastronômica e amado pelos nossos clientes que buscam uma experiência autêntica e memorável.</p>
                 </div>
                 <div class="about-image">
                     <img 
-                        src="https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?auto=format&fit=crop&w=600&q=80" 
-                        alt="Chef preparando sushi tradicional japonês"
+                        src="https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=800&q=80" 
+                        alt="Chef preparando sushi tradicional japonês no Sakura Sushi"
                         loading="lazy"
+                        onerror="this.src='https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?auto=format&fit=crop&w=800&q=80'"
                     >
                 </div>
             </div>
@@ -119,7 +117,7 @@
                     <h3 class="category-title">Pratos Quentes</h3>
                     <div class="menu-item">
                         <div class="item-info">
-                            <h4>Yakissoba Will</h4>
+                            <h4>Yakissoba Sakura</h4>
                             <p>Macarrão no wok, legumes frescos, molho especial</p>
                         </div>
                         <span class="item-price">R$ 48,00</span>
@@ -232,7 +230,7 @@
                         </div>
                         <div class="contact-details">
                             <h4>E-mail</h4>
-                            <p>contato@willrestaurant.com.br<br>reservas@willrestaurant.com.br</p>
+                            <p>contato@sakurasushi.com.br<br>reservas@sakurasushi.com.br</p>
                         </div>
                     </div>
                 </div>
@@ -281,7 +279,7 @@
                     <i class="fab fa-tripadvisor"></i>
                 </a>
             </div>
-            <p>&copy; 2025 Will Japanese Restaurant. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Sakura Sushi. Todos os direitos reservados.</p>
             <p style="opacity: 0.7; font-size: var(--font-size-sm); margin-top: var(--spacing-sm);">CNPJ: 12.345.678/0001-90 | Licença ANVISA: 123456789</p>
         </div>
     </footer>
@@ -299,12 +297,12 @@
         <div class="chatbot-container" id="chatbotContainer" role="dialog" aria-label="Chat de atendimento">
             <div class="chatbot-header">
                 <i class="fas fa-robot" aria-hidden="true"></i>
-                Atendimento Virtual Will
+                Atendimento Virtual Sakura
             </div>
             <div class="chatbot-messages" id="cbMessages" role="log" aria-live="polite" aria-atomic="false">
                 <div class="chatbot-message bot">
                     <div class="chatbot-message-content">
-                        Konnichiwa! Bem-vindo ao Will Japanese Restaurant.<br><br>
+                        Konnichiwa! Bem-vindo ao Sakura Sushi.<br><br>
                         Sou seu assistente virtual e estou aqui para ajudá-lo com informações sobre nosso cardápio, preços, horários e pedidos.<br><br>
                         Como posso ajudá-lo hoje?
                     </div>

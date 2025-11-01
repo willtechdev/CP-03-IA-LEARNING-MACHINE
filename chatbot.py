@@ -438,7 +438,7 @@ class RestauranteJaponesChatbotSimples:
 chatbot = RestauranteJaponesChatbotSimples()
 
 if __name__ == "__main__":
-    print("Chatbot do Will Japanese Restaurant iniciado!")
+    print("Chatbot do Sakura Sushi iniciado!")
     print("Digite 'sair' para encerrar.")
     
     while True:

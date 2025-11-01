@@ -1,4 +1,4 @@
-# Teste do Chatbot Will Japanese Restaurant
+# Teste do Chatbot Sakura Sushi
 
 ## Frases para testar múltiplas intenções:
 

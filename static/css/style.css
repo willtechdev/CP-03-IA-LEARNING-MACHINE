@@ -35,8 +35,8 @@
     --spacing-2xl: 3rem;
     --spacing-3xl: 4rem;
     
-    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: 'Playfair Display', serif;
+    --font-primary: Arial, sans-serif;
+    --font-display: Arial, sans-serif;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
@@ -146,8 +146,9 @@ a {
 }
 
 .logo::before {
-    content: '🍣';
+    content: '🌸';
     font-size: 1.5em;
+    margin-right: 0.25rem;
 }
 
 .nav-links {
@@ -191,9 +192,7 @@ a {
    ============================================ */
 .hero {
     min-height: 100vh;
-    background: 
-        linear-gradient(rgba(26, 29, 41, 0.75), rgba(196, 30, 58, 0.35)),
-        url('https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?auto=format&fit=crop&w=2000&q=80');
+    background: #1A1D29;
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -203,20 +202,39 @@ a {
     text-align: center;
     color: var(--color-white);
     position: relative;
+    overflow: hidden;
 }
 
 .hero::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+    background: url('https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    filter: blur(15px) brightness(0.5);
+    transform: scale(1.2);
+    z-index: 0;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 25% 50%, rgba(196, 30, 58, 0.7) 0%, transparent 55%),
+        radial-gradient(circle at 75% 50%, rgba(26, 29, 41, 0.8) 0%, transparent 55%),
+        linear-gradient(rgba(26, 29, 41, 0.5), rgba(196, 30, 58, 0.4));
+    z-index: 1;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
 }
 
 .hero-content {
     max-width: 800px;
     padding: 0 var(--spacing-xl);
     position: relative;
-    z-index: 1;
+    z-index: 2;
     animation: fadeInUp 1s ease-out;
 }
 
@@ -224,16 +242,22 @@ a {
     font-size: clamp(2.5rem, 8vw, 5rem);
     margin-bottom: var(--spacing-lg);
     color: var(--color-white);
-    text-shadow: 2px 4px 12px rgba(0,0,0,0.4);
-    letter-spacing: -2px;
+    text-shadow: 
+        3px 3px 6px rgba(0,0,0,0.6),
+        0 0 20px rgba(196, 30, 58, 0.3);
+    letter-spacing: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .hero .subtitle {
     font-size: clamp(var(--font-size-lg), 2vw, var(--font-size-xl));
     margin-bottom: var(--spacing-2xl);
-    opacity: 0.95;
-    font-weight: 300;
-    text-shadow: 1px 2px 8px rgba(0,0,0,0.3);
+    opacity: 0.98;
+    font-weight: 400;
+    text-shadow: 
+        2px 2px 4px rgba(0,0,0,0.5),
+        0 0 10px rgba(26, 29, 41, 0.3);
 }
 
 .cta-button {
